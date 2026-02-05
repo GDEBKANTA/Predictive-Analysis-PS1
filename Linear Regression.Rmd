@@ -1,0 +1,228 @@
+---
+title: "LINEAR REGRESSION"
+author: "DEBKANTA GHOSH"
+date: "2026-02-04"
+output: word_document
+---
+
+**1.Problem to demonstrate that the population\n
+regression line is fixed, but least square regression\n
+line varies.**
+```{r}
+rm(list=ls())
+```
+
+```{r}
+#STEP1:TAKE EQUIDISTANT POINT FROM 5 TO 10
+
+x=seq(5,10,length.out=200)
+x
+y=2+3*x
+plot(x,y,type='l',lwd=3,main="plot population regresion function")
+```
+
+```{r}
+#step 2:Generate xi(i = 1, 2, .., n) from Uniform(5, 10) and ϵi(i = 1, 2, .., n)from N(0, 42). Hence, compute y1, y2, .., yn.
+
+set.seed(123)
+n=50
+xi=runif(n,5,10)
+ei=rnorm(n,0,4)
+yi=2+3*xi+ei
+```
+
+```{r}
+#step3: Least square regression line
+#two plot in same graph
+plot(x,y,type='l',lwd=3,main="plot population regression line and sample regression line")
+lin.reg=lm(yi~xi)
+coef(lin.reg)
+abline(lin.reg,col="red",lwd=3)
+```
+
+```{r}
+#Step 4: Repeat steps 2-3 five times. Graph the 5 least squares regression lines over the population regression line obtained in Step 1.
+set.seed(123)
+x1=runif(n,5,10)
+e1=rnorm(n,0,4)
+y1=2+3*x1+e1
+fit1=lm(y1~x1)
+summary(fit1)
+
+
+x2=runif(n,5,10)
+e2=rnorm(n,0,4)
+y2=2+3*x2+e2
+fit2=lm(y2~x2)
+
+x3=runif(n,5,10)
+e3=rnorm(n,0,4)
+y3=2+3*x3+e3
+fit3=lm(y3~x3)
+
+x4=runif(n,5,10)
+e4=rnorm(n,0,4)
+y4=2+3*x4+e4
+fit4=lm(y4~x4)
+
+x5=runif(n,5,10)
+e5=rnorm(n,0,4)
+y5=2+3*x5+e5
+fit5=lm(y5~x5)
+
+#Data frame containing the five models' coefficients
+coeff=data.frame(coef(fit1),
+                 coef(fit2),
+                 coef(fit3),
+                 coef(fit4),
+                 coef(fit5))
+coeff
+
+#Plot of the PRF and the Five SRFs
+
+plot(x,y,type='l',lwd=3,main="Plot of the PRF and the Five SRFs")
+lines(x1,predict(fit1),type='l',col="red")
+lines(x2,predict(fit2),type='l',col="brown")
+lines(x3,predict(fit3),type='l',col="green")
+lines(x4,predict(fit4),type='l',col="blue")
+lines(x5,predict(fit5),type='l',col="orange")
+legend("topleft",legend=c("PRF","Model 1","Model 2","Model 3",
+                          "Model 4","Model 5"),
+       col=c("black","red","brown","green","blue","orange"),
+       lwd=c(3,1,1,1,1,1))
+coeff
+
+#Interpretation: PRF is fixed but SRF varies
+
+```
+
+**Problem 2 Demonstrate that the estimators \( \hat{\beta}_0 \) and \( \hat{\beta}_1 \) minimize the Residual Sum of Squares (RSS).**
+```{r}
+rm(list=ls())
+```
+
+```{r}
+#step 1: Generate xi~U(5,10) of size 50, and ei~N(0,1)
+#y=2+3x+e
+n=50
+set.seed(123)
+x=runif(n,5,10)
+xm=x-mean(x)
+e=rnorm(n)
+y=2+3*xm+e
+fit=lm(y~xm)
+summary(fit)
+beta0=2.0562
+beta=3.0764
+```
+```{r}
+#Creating the beta and beta0 grid values
+beta0.grid=seq(-1,1,length.out=101)+beta0
+beta.grid=seq(-1,1,length.out=101)+beta
+#Computing RSS
+RSS=c()
+for(i in 1:length(beta.grid))
+{
+  RSS[i]=sum((y-beta0.grid[i]-beta.grid[i]*xm)^2)
+}
+RSS
+df=data.frame(beta0.grid,beta.grid,RSS)
+df
+df[which.min(RSS),]
+
+#We can verify the LSE minimises the RSS
+```
+**3.Problem to demonstrate that least square estimators
+are unbiased**
+```{r}
+rm(list=ls())
+```
+
+```{r}
+#Step 1: Generate xi~U(5,10) of size 50, and ei~N(0,1)
+n=50
+set.seed(123)
+x=runif(n,0,1)
+e=rnorm(n)
+y=2+3*x+e
+```
+
+```{r}
+#Step 2: obtain LSE
+fit=lm(y~x)
+summary(fit)
+beta0.hat=1.8576
+beta.hat=3.3817
+#Repeat R=1000 times
+set.seed(123)
+R=10000
+beta0=numeric(R)
+beta=numeric(R)
+n=50
+for(i in 1:R) {
+  x=runif(n,0,1)              
+  e=rnorm(n,0,1)            
+  y=2+3*x+e      
+  fit=lm(y~x)
+  beta0[i]=coef(fit)[1]    
+  beta[i]=coef(fit)[2]      
+}
+mean(beta0)
+mean(beta)
+
+#comment: the long run means of beta0.hat and beta hat converges to true beta and beta0
+
+var(beta0)
+var(beta)
+
+#Comment: var approaches 0 as R goes up. Hence LSE is consistent.
+```
+**4.Comparing several simple linear regressions
+Attach “Boston” data from MASS library in R. Select median value of owneroccupied**
+```{r}
+rm(list=ls())
+
+```
+
+```{r}
+# Load required library and data
+library(MASS)
+data(Boston)
+# (a) Run separate simple linear regressions
+model_crim =lm(medv ~ crim, data = Boston)
+model_nox =lm(medv ~ nox, data = Boston)
+model_black=lm(medv ~ black, data = Boston)
+model_lstat=lm(medv ~ lstat, data = Boston)
+
+# Present output in a single table
+summary_table=data.frame(
+  Predictor = c("crim", "nox", "black", "lstat"),
+  Coefficient = c(
+    coef(model_crim)[2],
+    coef(model_nox)[2],
+    coef(model_black)[2],
+    coef(model_lstat)[2]
+  ),
+  R_squared = c(
+    summary(model_crim)$r.squared,
+    summary(model_nox)$r.squared,
+    summary(model_black)$r.squared,
+    summary(model_lstat)$r.squared
+  )
+)
+
+summary_table
+
+# (b) Identify the best model based on R-squared
+best_model=summary_table[which.max(summary_table$R_squared), ]
+best_model
+
+# (c) Compare coefficients and usefulness of predictors
+summary(model_crim)
+summary(model_nox)
+summary(model_black)
+summary(model_lstat)
+
+```
+
+
